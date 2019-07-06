@@ -1,17 +1,33 @@
 package com.kotlin.guesstheword.screens.game
 
 import android.util.Log
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 
 class GameViewModel : ViewModel() {
 
     private val tag = GameViewModel::class.java.simpleName
 
-    var word = ""
-    var score = 0
+    // SOS: now word and score can only be changed from inside GameViewModel!
+    private val _word = MutableLiveData<String>()
+    val word: LiveData<String>
+        get() = _word
+
+    private val _score = MutableLiveData<Int>()
+    val score: LiveData<Int>
+        get() = _score
+
+    private val _eventGameFinish = MutableLiveData<Boolean>()
+    val eventGameFinish: LiveData<Boolean>
+        get() = _eventGameFinish
+
     private lateinit var wordList: MutableList<String>
 
     init {
+        _word.value = ""
+        _score.value = 0
+
         resetList()
         nextWord()
         Log.i(tag, "GameViewModel created!")
@@ -26,26 +42,35 @@ class GameViewModel : ViewModel() {
     }
 
     private fun nextWord() {
-        if (wordList.isNotEmpty()) {
-            word = wordList.removeAt(0)
+        if (wordList.isEmpty()) {
+            onGameFinish()
+        } else {
+            _word.value = wordList.removeAt(0)
         }
     }
 
     fun onSkip() {
         if (wordList.isNotEmpty()) {
-            score--
+            _score.value = score.value?.minus(1)
         }
         nextWord()
     }
 
     fun onCorrect() {
         if (wordList.isNotEmpty()) {
-            score++
+            _score.value = score.value?.plus(1)
         }
         nextWord()
     }
 
-    // SOS: viewModel is destroyed when fragment is destroyed BUT NOT FOR A CONFIG CHANGE!
+    private fun onGameFinish() {
+        _eventGameFinish.value = true
+    }
+
+    fun onGameFinishComplete() {
+        _eventGameFinish.value = false
+    }
+
     override fun onCleared() {
         super.onCleared()
         Log.i(tag, "GameViewModel destroyed!")
