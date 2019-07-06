@@ -1,8 +1,11 @@
 package com.kotlin.guesstheword.screens.game
 
+import android.os.CountDownTimer
+import android.text.format.DateUtils
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.Transformations
 import androidx.lifecycle.ViewModel
 
 class GameViewModel : ViewModel() {
@@ -21,6 +24,21 @@ class GameViewModel : ViewModel() {
     val eventGameFinish: LiveData<Boolean>
         get() = _eventGameFinish
 
+    // SOS: map takes a LiveData and returns another LiveData that is to be observed
+    private val _currentTime = MutableLiveData<Long>()
+    val currentTimeString: LiveData<String> = Transformations.map(_currentTime) { time ->
+        DateUtils.formatElapsedTime(time)
+    }
+
+    // SOS: this is the way Kotlin implements static things...
+    companion object {
+        private const val DONE = 0L
+        private const val ONE_SECOND = 1000L
+        private const val COUNTDOWN_TIME = 60000L
+    }
+
+    private val timer: CountDownTimer
+
     private lateinit var wordList: MutableList<String>
 
     init {
@@ -29,6 +47,20 @@ class GameViewModel : ViewModel() {
 
         resetList()
         nextWord()
+
+        timer = object : CountDownTimer(COUNTDOWN_TIME, ONE_SECOND) {
+            override fun onFinish() {
+                _currentTime.value = DONE
+                onGameFinish()
+            }
+
+            override fun onTick(millisUntilFinished: Long) {
+                _currentTime.value = millisUntilFinished / ONE_SECOND
+            }
+        }
+
+        timer.start()
+
         Log.i(tag, "GameViewModel created!")
     }
 
@@ -73,5 +105,6 @@ class GameViewModel : ViewModel() {
     override fun onCleared() {
         super.onCleared()
         Log.i(tag, "GameViewModel destroyed!")
+        timer.cancel()
     }
 }

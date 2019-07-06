@@ -18,6 +18,8 @@ class TitleFragment : Fragment() {
                 inflater, R.layout.title_fragment, container, false)
 
         binding.playGameButton.setOnClickListener {
+            // SOS: an easier way to call findNavController. Note that I can only call this on a
+            // fragment that is inside a NavHostFragment, like all my fragments are
             findNavController().navigate(TitleFragmentDirections.actionTitleToGame())
         }
 
