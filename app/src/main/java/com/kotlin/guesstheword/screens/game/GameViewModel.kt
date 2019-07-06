@@ -9,7 +9,6 @@ class GameViewModel : ViewModel() {
 
     private val tag = GameViewModel::class.java.simpleName
 
-    // SOS: now word and score can only be changed from inside GameViewModel!
     private val _word = MutableLiveData<String>()
     val word: LiveData<String>
         get() = _word
@@ -63,7 +62,7 @@ class GameViewModel : ViewModel() {
         nextWord()
     }
 
-    private fun onGameFinish() {
+    fun onGameFinish() {
         _eventGameFinish.value = true
     }
 
